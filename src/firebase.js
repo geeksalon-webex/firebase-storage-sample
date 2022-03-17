@@ -1,13 +1,19 @@
-import firebase from "firebase";
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-import firebaseConfig from "@/firebaseConfig.js";
-// 上のコードの代わりに、自分のプロジェクトの構成オブジェクトを貼り付ける
+// 👇 この一行をコメントアウトする
+import firebaseConfig from "@/firebaseConfig";
+
+// 👇 コメントアウトを外して、自分のfirebaseプロジェクトの構成オブジェクトを貼り付ける
 // const firebaseConfig = {
 //   apiKey: "AIzaS...",
 //   ...
 // }
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-export const db = firebase.firestore();
-export const storage = firebase.storage();
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
