@@ -15,9 +15,24 @@
 
 <script>
 import { db, storage } from "@/firebase";
+import { ref, uploadBytes } from "firebase/storage";
+import { addDoc, collection } from "firebase/firestore";
 export default {
+  data() {
+    return {
+      disabled: false,
+      message: "",
+    };
+  },
   methods: {
     onFileChange(e) {
+      /**
+       * ブラウザで画像などのファイルを扱うには、File API を使う
+       * 参考：https://developer.mozilla.org/ja/docs/Web/API/File/Using_files_from_web_applications
+       * 参考：https://code-kitchen.dev/html/input-file/
+       */
+
+      // <input type="file"> で選択されたファイルは e.target.files の配列に入っている。
       const file = e.target.files[0];
       this.upload(file);
     },
@@ -25,31 +40,30 @@ export default {
       this.message = "アップロード中...";
       this.disabled = true;
 
-      // ref は reference の略。データの在り処＝住所を表すイメージ。
-      const storageRef = storage.ref();
-
-      // 同じ名前のファイルと区別できるように timestamp を追加して、ユニークなファイル名をつける
+      /**
+       * firestorage のどこにどういうファイル名で保存するかを参照する Ref を作る。
+       * 参考：https://firebase.google.com/docs/storage/web/create-reference?hl=ja&authuser=0#create_a_reference
+       */
       const createdAt = new Date();
-      const timestamp = createdAt.getTime();
-      const uniqueFileName = timestamp + "_" + file.name;
-      const fileRef = storageRef.child("images/" + uniqueFileName);
+      // 同じ名前のファイルと区別できるように createdAt.getTime() を追加して、ユニークなファイル名をつける
+      const uniqueFileName = createdAt.getTime() + "_" + file.name;
+      const fileRef = ref(storage, "images/" + uniqueFileName);
 
-      // fileRef の場所に file を送る。 put は "置き換える" の意味。
-      // uploadTask.on("state_changed", ...) を使う方法もあるが、ひとまず then で実装する
-      fileRef
-        .put(file)
-        .then(() => fileRef.getDownloadURL())
-        // 上の then のなかで snapshot.getDownloadURL().then(...) と書いてもいいが、
-        // then で続けられるやつを return すると、外側に then を続けることができ、よみやすい
-        // 例 fetch(...).then(res => res.json()).then(...)
+      /**
+       * uploadBytes() を使って、ファイルをfirstorageにアップロードする
+       * その後、画像のURLを取得してfirestoreのデータベースに保存する
+       * 参考：https://firebase.google.com/docs/storage/web/upload-files?hl=ja&authuser=0#upload_from_a_blob_or_file
+       */
+      uploadBytes(fileRef, file)
+        // この時点でアップロードが完了している。 snapshot.getDownloadURL() でアップロードしたURLを取得する。
+        .then((snapshot) => snapshot.getDownloadURL())
         .then((url) => {
-          // storage にアップロードしたファイルに対応するドキュメントを保存する
           const image = {
             name: file.name,
-            url,
+            url, // url : url と同じ。オブジェクトでプロパティのキーとバリューの名前が同じ時は省略できる。
             createdAt,
           };
-          return db.collection("images").add(image);
+          return addDoc(collection(db, "images"), image);
         })
         .then(() => {
           this.message = "アップロード完了！";
@@ -59,12 +73,6 @@ export default {
           }, 1000);
         });
     },
-  },
-  data() {
-    return {
-      disabled: false,
-      message: "",
-    };
   },
 };
 </script>

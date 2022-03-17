@@ -2,7 +2,7 @@
   <div>
     <h2>ImageViewer</h2>
     <button @click="getImages">更新</button>
-    <div class="images-container">
+    <div>
       <div v-for="image in images" :key="image.id">
         <img :src="image.url" :alt="image.name" />
         <div>{{ image.name }}</div>
@@ -13,6 +13,7 @@
 
 <script>
 import { db } from "@/firebase";
+import { getDocs, query, collection, orderBy, limit } from "firebase/firestore";
 
 export default {
   data() {
@@ -22,29 +23,40 @@ export default {
   },
   methods: {
     getImages() {
-      db.collection("images")
-        .orderBy("createdAt")
-        .limit(5)
-        .get()
-        .then((collection) => {
-          this.images = collection.docs.map((doc) => {
-            return {
-              id: doc.id,
-              ...doc.data(),
-            };
-          });
-          // 上は下のコードと同じ意味
-          // map については Array.prototype.map で調べてみてください
-          //
-          // const images = [];
-          // for (const doc of collection.docs) {
-          //   images.push({
-          //     id: doc.id,
-          //     ...doc.data()
-          //   });
-          // }
-          // this.images = images;
+      /**
+       * firestore の images コレクションを示す クエリ を作成する。
+       * クエリとは、データベースに対して「これでデータを取得してください!」と示すもの。
+       * Googleで検索する時のキーワードの羅列のイメージ。
+       * 参考：https://firebase.google.com/docs/firestore/query-data/get-data?hl=ja#get_multiple_documents_from_a_collection
+       * 参考：https://firebase.google.com/docs/firestore/query-data/queries?hl=ja#execute_a_query
+       */
+
+      const imagesQuery = query(
+        collection(db, "images"),
+        orderBy("createdAt"),
+        limit(5)
+      );
+      getDocs(imagesQuery).then((collection) => {
+        this.images = collection.docs.map((doc) => {
+          return {
+            id: doc.id,
+            ...doc.data(),
+          };
         });
+        // 上は下のコードと同じ意味
+        // map については Array.prototype.map で調べてみてください
+        // ... はスプレッド構文と言いオブジェクトのプロパティを展開してくれます。
+        // const images = [];
+        // for (let i = 0;i < images.length;i++) {
+        //   images.push({
+        //     id: doc.id,
+        //     name: doc.data().name,
+        //     url: doc.data().url,
+        //     createdAt:  doc.data().createdAt
+        //   });
+        // }
+        // this.images = images;
+      });
     },
   },
   mounted() {
@@ -52,5 +64,3 @@ export default {
   },
 };
 </script>
-
-<style scoped></style>
