@@ -15,7 +15,7 @@
 
 <script>
 import { db, storage } from "@/firebase";
-import { ref, uploadBytes } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDoc, collection } from "firebase/firestore";
 export default {
   data() {
@@ -55,8 +55,11 @@ export default {
        * 参考：https://firebase.google.com/docs/storage/web/upload-files?hl=ja&authuser=0#upload_from_a_blob_or_file
        */
       uploadBytes(fileRef, file)
-        // この時点でアップロードが完了している。 snapshot.getDownloadURL() でアップロードしたURLを取得する。
-        .then((snapshot) => snapshot.getDownloadURL())
+        // この時点でファイルのアップロードは完了している。
+        // snapshot.getDownloadURL(fileRef) でアップロードしたRefのURLを取得する。
+        .then(() => {
+          return getDownloadURL(fileRef);
+        })
         .then((url) => {
           const image = {
             name: file.name,
