@@ -42,12 +42,12 @@ export default {
         // 上の then のなかで snapshot.getDownloadURL().then(...) と書いてもいいが、
         // then で続けられるやつを return すると、外側に then を続けることができ、よみやすい
         // 例 fetch(...).then(res => res.json()).then(...)
-        .then(url => {
+        .then((url) => {
           // storage にアップロードしたファイルに対応するドキュメントを保存する
           const image = {
             name: file.name,
             url,
-            createdAt
+            createdAt,
           };
           return db.collection("images").add(image);
         })
@@ -58,13 +58,13 @@ export default {
             this.disabled = false;
           }, 1000);
         });
-    }
+    },
   },
   data() {
     return {
       disabled: false,
-      message: ""
+      message: "",
     };
-  }
+  },
 };
 </script>

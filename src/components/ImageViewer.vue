@@ -17,7 +17,7 @@ import { db } from "@/firebase";
 export default {
   data() {
     return {
-      images: []
+      images: [],
     };
   },
   methods: {
@@ -26,11 +26,11 @@ export default {
         .orderBy("createdAt")
         .limit(5)
         .get()
-        .then(collection => {
-          this.images = collection.docs.map(doc => {
+        .then((collection) => {
+          this.images = collection.docs.map((doc) => {
             return {
               id: doc.id,
-              ...doc.data()
+              ...doc.data(),
             };
           });
           // 上は下のコードと同じ意味
@@ -45,11 +45,11 @@ export default {
           // }
           // this.images = images;
         });
-    }
+    },
   },
   mounted() {
     this.getImages();
-  }
+  },
 };
 </script>
 
